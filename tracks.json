@@ -1,0 +1,92 @@
+[
+  {
+    "id": "trk_01",
+    "title": "Half Window Down",
+    "artist": "Ikka",
+    "album": "Single",
+    "duration": "4:16",
+    "url": "./songs/track01.mp3",
+    "cover": "./covers/track01_cover.jpg"
+  },
+  {
+    "id": "trk_02",
+    "title": "Call Aundi",
+    "artist": "YO Yo Honey Singh",
+    "album": "Single",
+    "duration": "3:18",
+    "url": "./songs/track02.mp3",
+    "cover": "./covers/track02_cover.jpg"
+  },
+  {
+    "id": "trk_03",
+    "title": "Goat",
+    "artist": "Diljit Dosanjh",
+    "album": "G.O.A.T.",
+    "duration": "3:43",
+    "url": "./songs/track03.mp3",
+    "cover": "./covers/track03_cover.jpg"
+  },
+  {
+    "id": "trk_04",
+    "title": "Has Has",
+    "artist": "Diljit Dosanjh",
+    "album": "Single",
+    "duration": "2:32",
+    "url": "./songs/track04.mp3",
+    "cover": "./covers/track04_cover.jpg"
+  },
+  {
+    "id": "trk_05",
+    "title": "Lemonade",
+    "artist": "Diljit Dosanjh",
+    "album": "Single",
+    "duration": "2:45",
+    "url": "./songs/track05.mp3",
+    "cover": "./covers/track05_cover.jpg"
+  },
+  {
+    "id": "trk_06",
+    "title": "MONTAGEM ELDER",
+    "artist": "Dj Samir",
+    "album": "Single",
+    "duration": "1:51",
+    "url": "./songs/track06.mp3",
+    "cover": "./covers/track06_cover.jpg"
+  },
+  {
+    "id": "trk_07",
+    "title": "Brown Rang ( slowed and reverb )",
+    "artist": "YO Yo Honey Singh",
+    "album": "YouTube Ingestion",
+    "duration": "3:23",
+    "url": "./songs/track07.mp3",
+    "cover": "./covers/track07_cover.jpg"
+  },
+  {
+    "id": "trk_08",
+    "title": "Love Dose",
+    "artist": "YO Yo Honey Singh",
+    "album": "YouTube Ingestion",
+    "duration": "4:36",
+    "url": "./songs/track08.mp3",
+    "cover": "./covers/track08_cover.jpg"
+  },
+  {
+    "id": "trk_09",
+    "title": "Rabb Wangu : Jass Manak (Full Video)  | Punjabi Song | Geet MP3",
+    "artist": "Geet MP3",
+    "album": "YouTube Ingestion",
+    "duration": "2:24",
+    "url": "./songs/track09.mp3",
+    "cover": "./covers/track09_cover.jpg"
+  },
+  {
+    "id": "trk_10",
+    "title": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": "YouTube Ingestion",
+    "duration": "3:26",
+    "url": "./songs/track10.mp3",
+    "cover": "./covers/track10_cover.jpg"
+  }
+]
