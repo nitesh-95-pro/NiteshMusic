@@ -213,6 +213,10 @@ class HarmonyEngine {
     this.currentViewMode = mode;
     this.activePlaylistName = playlistName;
 
+    if (pushHistory && mode !== "library") {
+    history.pushState({ view: mode }, "");
+  }
+
     this.navLinks.forEach(l => l.classList.toggle("active", l.dataset.view === mode));
     this.mobileNavBtns.forEach(b => b.classList.toggle("active", b.dataset.view === mode));
 
@@ -714,12 +718,6 @@ class HarmonyEngine {
         return;
       }
     });
-
-    // Update switchView in app.js to push history states
-    // switchView(mode, playlistName = null, pushHistory = true)
-    if (pushHistory && mode !== "library") {
-      history.pushState({ view: mode }, "");
-    }
   }
 }
 
