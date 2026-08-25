@@ -88,5 +88,181 @@
     "duration": "3:26",
     "url": "./songs/track10.mp3",
     "cover": "./covers/track10_cover.jpg"
+  },
+  {
+    "id": "trk_11",
+    "title": "Kali Ho Gai",
+    "artist": "Jass Manak",
+    "duration": "02:33",
+    "url": "songs/track11.mp3",
+    "cover": "covers/track11_cover.jpg"
+  },
+  {
+    "id": "trk_12",
+    "title": "Butterfly",
+    "artist": "Jass Manak",
+    "duration": "02:43",
+    "url": "songs/track12.mp3",
+    "cover": "covers/track12_cover.jpg"
+  },
+  {
+    "id": "trk_13",
+    "title": "Baby Doll",
+    "artist": "Dominic Fike",
+    "duration": "01:38",
+    "url": "songs/track13.mp3",
+    "cover": "covers/track13_cover.jpg"
+  },
+  {
+    "id": "trk_14",
+    "title": "Luminary",
+    "artist": "Suny",
+    "duration": "03:13",
+    "url": "songs/track14.mp3",
+    "cover": "covers/track14_cover.jpg"
+  },
+  {
+    "id": "trk_15",
+    "title": "Unravel Slowed",
+    "artist": "Tokyo ghoul",
+    "duration": "03:54",
+    "url": "songs/track15.mp3",
+    "cover": "covers/track15_cover.jpg"
+  },
+  {
+    "id": "trk_16",
+    "title": "Unravel",
+    "artist": "Tokyo ghoul",
+    "duration": "04:27",
+    "url": "songs/track16.mp3",
+    "cover": "covers/track16_cover.jpg"
+  },
+  {
+    "id": "trk_17",
+    "title": "Chera Tera",
+    "artist": "Jass Manak",
+    "duration": "03:24",
+    "url": "songs/track17.mp3",
+    "cover": "covers/track17_cover.jpg"
+  },
+  {
+    "id": "trk_18",
+    "title": "Void",
+    "artist": "Diljit Dosanjh",
+    "duration": "04:16",
+    "url": "songs/track18.mp3",
+    "cover": "covers/track18_cover.jpg"
+  },
+  {
+    "id": "trk_19",
+    "title": "Champane",
+    "artist": "Unknown Artist",
+    "duration": "03:36",
+    "url": "songs/track19.mp3",
+    "cover": "covers/track19_cover.jpg"
+  },
+  {
+    "id": "trk_20",
+    "title": "2 A.M.",
+    "artist": "Karan Aujla",
+    "duration": "04:43",
+    "url": "songs/track20.mp3",
+    "cover": "covers/track20_cover.jpg"
+  },
+  {
+    "id": "trk_21",
+    "title": "Kath Lagda",
+    "artist": "Naveen Sandhu",
+    "duration": "05:12",
+    "url": "songs/track21.mp3",
+    "cover": "covers/track21_cover.jpg"
+  },
+  {
+    "id": "trk_22",
+    "title": "Nira Ishq",
+    "artist": "Guri",
+    "duration": "03:04",
+    "url": "songs/track22.mp3",
+    "cover": "covers/track22_cover.jpg"
+  },
+  {
+    "id": "trk_23",
+    "title": "Girlfriend",
+    "artist": "Jass Manak",
+    "duration": "03:12",
+    "url": "songs/track23.mp3",
+    "cover": "covers/track23_cover.jpg"
+  },
+  {
+    "id": "trk_24",
+    "title": "Haye Mera Dil",
+    "artist": "Yo Yo honey singh",
+    "duration": "03:26",
+    "url": "songs/track24.mp3",
+    "cover": "covers/track24_cover.jpg"
+  },
+  {
+    "id": "trk_25",
+    "title": "Love Nwantiti|Slowed + Reverb",
+    "artist": "NotPortal",
+    "duration": "04:37",
+    "url": "songs/track25.mp3",
+    "cover": "covers/track25_cover.jpg"
+  },
+  {
+    "id": "trk_26",
+    "title": "Tu High Level Ki Chhori se",
+    "artist": "slowed lo-fi version",
+    "duration": "04:04",
+    "url": "songs/track26.mp3",
+    "cover": "covers/track26_cover.jpg"
+  },
+  {
+    "id": "trk_27",
+    "title": "Middle Of The Night|Violin version",
+    "artist": "Think Wise",
+    "duration": "04:00",
+    "url": "songs/track27.mp3",
+    "cover": "covers/track27_cover.jpg"
+  },
+  {
+    "id": "trk_28",
+    "title": "7 years",
+    "artist": "Lukas Graham",
+    "duration": "05:09",
+    "url": "songs/track28.mp3",
+    "cover": "covers/track28_cover.jpg"
+  },
+  {
+    "id": "trk_29",
+    "title": "summetime sadness...",
+    "artist": "Wheadky",
+    "duration": "05:03",
+    "url": "songs/track29.mp3",
+    "cover": "covers/track29_cover.jpg"
+  },
+  {
+    "id": "trk_30",
+    "title": "Destiny 🙌",
+    "artist": "NEFFEX",
+    "duration": "03:27",
+    "url": "songs/track30.mp3",
+    "cover": "covers/track30_cover.jpg"
+  },
+  {
+    "id": "trk_31",
+    "title": "Cold ❄️",
+    "artist": "NEFFEX",
+    "duration": "03:06",
+    "url": "songs/track31.mp3",
+    "cover": "covers/track31_cover.jpg"
+  },
+  {
+    "id": "trk_32",
+    "title": "Best of Me 🤘",
+    "artist": "NEFFEX",
+    "duration": "03:47",
+    "url": "songs/track32.mp3",
+    "cover": "covers/track32_cover.jpg"
   }
 ]
