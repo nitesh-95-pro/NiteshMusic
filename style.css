@@ -671,3 +671,58 @@ body {
 @media (min-width: 1025px) {
   .mobile-bottom-nav { display: none; }
 }
+/* --- Desktop Volume Slider Animation --- */
+@media (min-width: 768px) {
+  .volume-container,
+  .player-volume-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Base Passive State */
+  input[type="range"].volume-slider,
+  .volume-bar {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 60px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.2s ease;
+  }
+
+  /* Slider Thumb (Passive) */
+  input[type="range"].volume-slider::-webkit-slider-thumb,
+  .volume-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 0px;
+    height: 0px;
+    border-radius: 50%;
+    background: #ff2d55;
+    transition: width 0.2s ease, height 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  /* Hover & Active/Sliding State (Expands) */
+  input[type="range"].volume-slider:hover,
+  input[type="range"].volume-slider:active,
+  .volume-container:hover input[type="range"] {
+    width: 110px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  /* Slider Thumb (Active/Hovered) */
+  input[type="range"].volume-slider:hover::-webkit-slider-thumb,
+  input[type="range"].volume-slider:active::-webkit-slider-thumb,
+  .volume-container:hover input[type="range"]::-webkit-slider-thumb {
+    width: 12px;
+    height: 12px;
+    box-shadow: 0 0 6px rgba(255, 45, 85, 0.6);
+  }
+}

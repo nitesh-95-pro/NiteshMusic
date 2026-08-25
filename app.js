@@ -209,48 +209,43 @@ class HarmonyEngine {
     localStorage.setItem("harmony_playlists", JSON.stringify(this.playlists));
   }
 
-  switchView(mode, playlistName = null) {
+  switchView(mode, playlistName = null, pushHistory = true) {
+    console.log("[Navigation] Switching view to:", mode, "| Playlist:", playlistName);
+
     this.currentViewMode = mode;
     this.activePlaylistName = playlistName;
 
-    
-
-    this.navLinks.forEach(l => l.classList.toggle("active", l.dataset.view === mode));
-    this.mobileNavBtns.forEach(b => b.classList.toggle("active", b.dataset.view === mode));
-
-    const titleEl = document.querySelector(".title-left h2");
-    if (this.viewToggleBtn) {
-      this.viewToggleBtn.style.display = (mode === "all-playlists") ? "none" : "flex";
+    // Update browser history safely
+    if (pushHistory && window.history && window.history.pushState) {
+      if (mode !== "library") {
+        window.history.pushState({ view: mode, playlist: playlistName }, "");
+      }
     }
 
-    if (mode === "library") {
-      titleEl.textContent = "Library";
-      this.activeQueue = [...this.tracks];
-      this.filteredTracks = [...this.activeQueue];
-      this.renderView();
-    } else if (mode === "favorites") {
-      titleEl.textContent = "Favorites";
-      this.activeQueue = this.tracks.filter(t => this.likedTracks.has(t.id));
-      this.filteredTracks = [...this.activeQueue];
-      this.renderView();
-    } else if (mode === "downloads") {
-      titleEl.textContent = "Downloads";
-      getOfflineTracks().then(offlineList => {
-        this.activeQueue = offlineList;
-        this.filteredTracks = [...this.activeQueue];
-        this.renderView();
+    // Update Sidebar & Bottom Nav Active States
+    if (this.navLinks) {
+      this.navLinks.forEach((link) => {
+        link.classList.toggle("active", link.dataset.view === mode);
       });
-    } else if (mode === "all-playlists") {
-      titleEl.textContent = "Playlists";
-      this.activeQueue = [];
-      this.filteredTracks = [];
-      this.renderView();
-    } else if (mode === "single-playlist") {
-      titleEl.textContent = playlistName;
-      const ids = this.playlists[playlistName] || [];
-      this.activeQueue = this.tracks.filter(t => ids.includes(t.id));
-      this.filteredTracks = [...this.activeQueue];
-      this.renderView();
+    }
+    if (this.mobileNavBtns) {
+      this.mobileNavBtns.forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.view === mode);
+      });
+    }
+
+    // Update Section Title
+    const viewTitle = document.querySelector(".view-title") || document.querySelector("h2");
+    if (viewTitle) {
+      if (mode === "library") viewTitle.textContent = "Library";
+      else if (mode === "favorites") viewTitle.textContent = "Favorites";
+      else if (mode === "downloads") viewTitle.textContent = "Downloads";
+      else if (mode === "playlists") viewTitle.textContent = playlistName || "Playlists";
+    }
+
+    // Re-render the song list for the selected mode
+    if (typeof this.renderTrackList === "function") {
+      this.renderTrackList();
     }
   }
 
@@ -702,6 +697,15 @@ class HarmonyEngine {
         }
       });
     }
+    // Inside bindDOMHandlers() in app.js
+    document.querySelectorAll("[data-view]").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        const targetView = el.dataset.view;
+        console.log("[UI] Nav clicked:", targetView);
+        this.switchView(targetView, null, true);
+      });
+    });
     // Add inside bindDOMHandlers() in app.js
     window.addEventListener("popstate", (e) => {
       // If Fullscreen Sheet is open, back button closes it first
@@ -716,9 +720,6 @@ class HarmonyEngine {
         return;
       }
     });
-    if (pushHistory && mode !== "library") {
-    history.pushState({ view: mode }, "");
-  }
   }
 }
 
