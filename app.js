@@ -116,6 +116,8 @@ class HarmonyEngine {
     this.grid = document.getElementById("grid-container");
     this.catalogCount = document.getElementById("catalog-count");
     this.searchBox = document.getElementById("search-box");
+    this.toast = document.getElementById("toast-notice");
+    this.toastTimer = null;
 
     // Navigations
     this.sidebar = document.getElementById("sidebar");
@@ -164,6 +166,7 @@ class HarmonyEngine {
     this.sheetNext = document.getElementById("sheet-next");
     this.sheetShuffle = document.getElementById("sheet-shuffle");
     this.sheetRepeat = document.getElementById("sheet-repeat");
+    this.sheetRepeatBadge = document.getElementById("sheet-repeat-badge");
 
     // State Variables
     this.tracks = [];
@@ -187,6 +190,17 @@ class HarmonyEngine {
     this.bindDOMHandlers();
     this.bindKeyboardShortcuts();
     this.bindMouseIdleDetection();
+    this.bindConnectivity();
+  }
+
+  showToast(message) {
+    if (!this.toast) return;
+    this.toast.textContent = message;
+    this.toast.classList.add("show");
+    clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => {
+      this.toast.classList.remove("show");
+    }, 2800);
   }
 
   async start() {
@@ -195,12 +209,22 @@ class HarmonyEngine {
     this.activeQueue = [...this.tracks];
     this.filteredTracks = [...this.tracks];
 
+    // Initialize Volume Slider fill
+    if (this.volSlider) {
+      this.volSlider.style.setProperty("--vol-pct", "100%");
+    }
+
     if (this.tracks.length === 0) {
       this.dockTitle.textContent = "Library Empty";
       return;
     }
 
-    this.renderView();
+    if (!navigator.onLine) {
+      this.switchView("downloads", null, false);
+      this.showToast("App is offline. Loaded Downloads.");
+    } else {
+      this.renderView();
+    }
     this.loadTrack(0, false);
   }
 
@@ -210,12 +234,17 @@ class HarmonyEngine {
   }
 
   switchView(mode, playlistName = null, pushHistory = true) {
+    if (!navigator.onLine && mode !== "downloads") {
+      this.showToast("App is offline: Only Downloads mode is accessible.");
+      return;
+    }
+
     console.log("[Navigation] Switching view to:", mode, "| Playlist:", playlistName);
 
     this.currentViewMode = mode;
     this.activePlaylistName = playlistName;
 
-    // Filter tracks based on the selected mode
+    // Filter tracks based on active mode
     if (mode === "library") {
       this.filteredTracks = [...this.tracks];
     } else if (mode === "favorites") {
@@ -227,7 +256,7 @@ class HarmonyEngine {
       this.filteredTracks = this.tracks.filter(t => pTrackIds.has(t.id));
     }
 
-    // Update browser history safely
+    // Update browser history
     if (pushHistory && window.history && window.history.pushState) {
       if (mode !== "library") {
         window.history.pushState({ view: mode, playlist: playlistName }, "");
@@ -246,7 +275,7 @@ class HarmonyEngine {
       });
     }
 
-    // Update Section Title & Count
+    // Update Section Title
     const titleEl = document.querySelector(".title-left h2");
     if (titleEl) {
       if (mode === "library") titleEl.textContent = "Library";
@@ -256,7 +285,6 @@ class HarmonyEngine {
       else if (mode === "single-playlist") titleEl.textContent = playlistName || "Playlist";
     }
 
-    // Re-render the correct view
     this.renderView();
   }
 
@@ -294,11 +322,32 @@ class HarmonyEngine {
           <img src="${coverArt}" alt="${name}" onerror="this.src='./icons/icon-512.png'" />
         </div>
         <div class="card-info">
-          <h4>${name}</h4>
-          <p>${trackIds.length} tracks</p>
+          <div>
+            <h4>${name}</h4>
+            <p>${trackIds.length} tracks</p>
+          </div>
+          <div class="card-footer-row">
+            <button class="card-action-btn delete-p-btn" data-name="${name}" title="Delete Playlist">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+              </svg>
+            </button>
+          </div>
         </div>
       `;
-      card.addEventListener("click", () => this.switchView("single-playlist", name));
+      card.addEventListener("click", (e) => {
+        if (e.target.closest(".delete-p-btn")) return;
+        this.switchView("single-playlist", name);
+      });
+
+      card.querySelector(".delete-p-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        delete this.playlists[name];
+        this.saveState();
+        this.showToast(`Deleted playlist "${name}"`);
+        this.renderPlaylistsOverview();
+      });
+
       this.grid.appendChild(card);
     });
   }
@@ -376,6 +425,7 @@ class HarmonyEngine {
           if (this.downloadedTrackIds.has(track.id)) {
             await removeOfflineTrack(track.id);
             this.downloadedTrackIds.delete(track.id);
+            this.showToast(`Removed "${track.title}" from offline vault`);
             if (this.currentViewMode === "downloads") {
               this.switchView("downloads");
               return;
@@ -383,10 +433,12 @@ class HarmonyEngine {
           } else {
             await saveTrackOffline(track);
             this.downloadedTrackIds.add(track.id);
+            this.showToast(`Downloaded "${track.title}" for offline play`);
           }
           this.renderView();
         } catch (err) {
           console.error("[Download Error]", err);
+          this.showToast("Offline caching failed");
         } finally {
           btn.classList.remove("dl-animating");
         }
@@ -427,6 +479,7 @@ class HarmonyEngine {
     this.sheetCover.src = track.cover;
 
     this.seekBar.value = 0;
+    this.sheetSeekBar.value = 0;
     this.railFill.style.width = "0%";
     if (this.miniRailFill) this.miniRailFill.style.width = "0%";
     if (this.sheetRailFill) this.sheetRailFill.style.width = "0%";
@@ -497,24 +550,31 @@ class HarmonyEngine {
     this.isShuffle = !this.isShuffle;
     this.shuffleBtn.classList.toggle("active-mode", this.isShuffle);
     this.sheetShuffle.classList.toggle("active-mode", this.isShuffle);
+    this.showToast(this.isShuffle ? "Shuffle Mode ON" : "Shuffle Mode OFF");
   }
 
   cycleRepeatMode() {
     if (this.repeatMode === "all") {
       this.repeatMode = "one";
       this.repeatBadge.textContent = "1";
+      if (this.sheetRepeatBadge) this.sheetRepeatBadge.textContent = "1";
       this.repeatBtn.classList.add("active-mode");
       this.sheetRepeat.classList.add("active-mode");
+      this.showToast("Repeat Track");
     } else if (this.repeatMode === "one") {
       this.repeatMode = "off";
       this.repeatBadge.textContent = "";
+      if (this.sheetRepeatBadge) this.sheetRepeatBadge.textContent = "";
       this.repeatBtn.classList.remove("active-mode");
       this.sheetRepeat.classList.remove("active-mode");
+      this.showToast("Repeat OFF");
     } else {
       this.repeatMode = "all";
       this.repeatBadge.textContent = "∞";
+      if (this.sheetRepeatBadge) this.sheetRepeatBadge.textContent = "∞";
       this.repeatBtn.classList.add("active-mode");
       this.sheetRepeat.classList.add("active-mode");
+      this.showToast("Repeat All");
     }
   }
 
@@ -523,12 +583,14 @@ class HarmonyEngine {
       this.audio.muted = false;
       this.audio.volume = this.prevVolume > 0 ? this.prevVolume : 0.8;
       this.volSlider.value = this.audio.volume;
+      this.volSlider.style.setProperty("--vol-pct", `${this.audio.volume * 100}%`);
       this.volumeIcon.innerHTML = VOLUME_ICONS.high;
     } else {
       this.prevVolume = this.audio.volume;
       this.audio.muted = true;
       this.audio.volume = 0;
       this.volSlider.value = 0;
+      this.volSlider.style.setProperty("--vol-pct", `0%`);
       this.volumeIcon.innerHTML = VOLUME_ICONS.muted;
     }
   }
@@ -537,6 +599,19 @@ class HarmonyEngine {
     const m = Math.floor(s / 60) || 0;
     const sec = Math.floor(s % 60) || 0;
     return `${m}:${sec < 10 ? "0" : ""}${sec}`;
+  }
+
+  bindConnectivity() {
+    window.addEventListener("offline", () => {
+      console.log("[Network] Connection lost.");
+      this.showToast("Offline mode active");
+      this.switchView("downloads", null, true);
+    });
+
+    window.addEventListener("online", () => {
+      console.log("[Network] Back online.");
+      this.showToast("Online: Reconnected");
+    });
   }
 
   bindMouseIdleDetection() {
@@ -575,13 +650,12 @@ class HarmonyEngine {
         : `<path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>`;
     });
 
-    this.mobileNavBtns.forEach(btn => {
-      btn.addEventListener("click", () => this.switchView(btn.dataset.view));
-    });
-
-    this.navLinks.forEach(link => {
-      link.addEventListener("click", () => {
-        if (link.dataset.view) this.switchView(link.dataset.view);
+    // Unified Navigation Listeners
+    document.querySelectorAll("[data-view]").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        const targetView = el.dataset.view;
+        this.switchView(targetView, null, true);
       });
     });
 
@@ -620,6 +694,7 @@ class HarmonyEngine {
       if (!this.audio.duration) return;
       const pct = (this.audio.currentTime / this.audio.duration) * 100;
       this.seekBar.value = pct;
+      this.sheetSeekBar.value = pct;
       this.railFill.style.width = `${pct}%`;
       if (this.miniRailFill) this.miniRailFill.style.width = `${pct}%`;
       if (this.sheetRailFill) this.sheetRailFill.style.width = `${pct}%`;
@@ -636,6 +711,8 @@ class HarmonyEngine {
 
     const handleSeek = (val) => {
       const pct = parseFloat(val);
+      this.seekBar.value = pct;
+      this.sheetSeekBar.value = pct;
       this.railFill.style.width = `${pct}%`;
       if (this.miniRailFill) this.miniRailFill.style.width = `${pct}%`;
       if (this.sheetRailFill) this.sheetRailFill.style.width = `${pct}%`;
@@ -651,6 +728,7 @@ class HarmonyEngine {
       this.audio.muted = (val === 0);
       this.volumeIcon.innerHTML = val === 0 ? VOLUME_ICONS.muted : VOLUME_ICONS.high;
       if (val > 0) this.prevVolume = val;
+      this.volSlider.style.setProperty("--vol-pct", `${val * 100}%`);
     });
 
     this.searchBox.addEventListener("input", (e) => {
@@ -670,7 +748,14 @@ class HarmonyEngine {
     const ytSubmitBtn = document.getElementById("yt-submit-btn");
 
     if (importBtn && ytModal) {
-      importBtn.addEventListener("click", () => { ytModal.classList.add("open"); ytStatus.textContent = ""; });
+      importBtn.addEventListener("click", () => {
+        if (!navigator.onLine) {
+          this.showToast("Cannot import songs while offline");
+          return;
+        }
+        ytModal.classList.add("open");
+        ytStatus.textContent = "";
+      });
       ytCloseBtn.addEventListener("click", () => ytModal.classList.remove("open"));
 
       ytForm.addEventListener("submit", async (e) => {
@@ -708,27 +793,14 @@ class HarmonyEngine {
         }
       });
     }
-    // Inside bindDOMHandlers() in app.js
-    document.querySelectorAll("[data-view]").forEach((el) => {
-      el.addEventListener("click", (e) => {
-        e.preventDefault();
-        const targetView = el.dataset.view;
-        console.log("[UI] Nav clicked:", targetView);
-        this.switchView(targetView, null, true);
-      });
-    });
-    // Add inside bindDOMHandlers() in app.js
-    window.addEventListener("popstate", (e) => {
-      // If Fullscreen Sheet is open, back button closes it first
+
+    window.addEventListener("popstate", () => {
       if (this.sheet && this.sheet.classList.contains("active")) {
         this.sheet.classList.remove("active");
         return;
       }
-
-      // If inside Downloads/Playlists/Favorites, navigate back to Library
       if (this.currentViewMode !== "library") {
         this.switchView("library", null, false);
-        return;
       }
     });
   }
@@ -738,6 +810,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const app = new HarmonyEngine();
   app.start();
 });
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
@@ -746,12 +819,3 @@ if ("serviceWorker" in navigator) {
       .catch((err) => console.error("[PWA] Failed:", err));
   });
 }
-// Add offline/online listeners in app.js
-window.addEventListener("offline", () => {
-  console.log("[Network] Internet lost. Falling back to offline vault.");
-  this.switchView("downloads");
-});
-
-window.addEventListener("online", () => {
-  console.log("[Network] Back online.");
-});

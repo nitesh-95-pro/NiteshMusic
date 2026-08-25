@@ -55,7 +55,7 @@
   },
   {
     "id": "trk_07",
-    "title": "Brown Rang ( slowed and reverb )",
+    "title": "Brown Rang|slowed and reverb",
     "artist": "YO Yo Honey Singh",
     "album": "YouTube Ingestion",
     "duration": "3:23",
@@ -73,8 +73,8 @@
   },
   {
     "id": "trk_09",
-    "title": "Rabb Wangu : Jass Manak (Full Video)  | Punjabi Song | Geet MP3",
-    "artist": "Geet MP3",
+    "title": "Rabb Wangu",
+    "artist": "Jass Manak",
     "album": "YouTube Ingestion",
     "duration": "2:24",
     "url": "./songs/track09.mp3",

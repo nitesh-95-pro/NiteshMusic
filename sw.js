@@ -1,4 +1,4 @@
-const CACHE_NAME = "nitesh-music-v1";
+const CACHE_NAME = "nitesh-music-v2";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",

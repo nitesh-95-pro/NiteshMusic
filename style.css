@@ -1,18 +1,17 @@
-/* Add to top of style.css */
 *, *::before, *::after {
-  -webkit-touch-callout: none !important; /* Disable iOS/Android long-press popup */
-  -webkit-user-select: none !important;   /* Stop text highlights */
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
   user-select: none !important;
-  touch-action: pan-y;                   /* Hardware-accelerated smooth scrolling */
+  touch-action: pan-y;
 }
 
 img {
-  pointer-events: none;                  /* Prevents browser "Save Image" triggers */
+  pointer-events: none;
 }
 
 .gallery-viewport {
-  -webkit-overflow-scrolling: touch;     /* iOS native inertial momentum scrolling */
-  overscroll-behavior-y: contain;        /* Prevent pull-to-refresh reload glitches */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 :root {
@@ -21,8 +20,8 @@ img {
   --pink-glow: rgba(255, 45, 85, 0.28);
   --bg-porcelain: #fcfcfd;
   --surface-white: #ffffff;
-  --glass-ultra: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.9);
+  --glass-ultra: rgba(255, 255, 255, 0.68);
+  --glass-border: rgba(255, 255, 255, 0.85);
   --border-subtle: #edf0f5;
   --text-dark: #1a1f2c;
   --text-muted: #8a94a6;
@@ -38,7 +37,6 @@ img {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   user-select: none;
 }
-
 
 body {
   background-color: var(--bg-porcelain);
@@ -360,22 +358,22 @@ body {
 .cards-grid.list-mode .card-img-wrap { width: 48px; height: 48px; flex-shrink: 0; }
 .cards-grid.list-mode .card-info { flex: 1; display: flex; flex-direction: row; justify-content: space-between; align-items: center; }
 
-/* Desktop Player Dock */
+/* Enhanced Ultra-Glassy Desktop Player Dock */
 .bottom-dock {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100vw;
   height: 86px;
-  background: var(--glass-ultra);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border-top: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(36px) saturate(210%);
+  -webkit-backdrop-filter: blur(36px) saturate(210%);
+  border-top: 1px solid rgba(255, 255, 255, 0.85);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   z-index: 100;
 }
 
@@ -411,27 +409,12 @@ body {
 .mid-actions { display: flex; align-items: center; gap: 16px; }
 .play-bubble { width: 48px; height: 48px; border-radius: 50%; background: var(--primary-pink); color: #ffffff; border: none; box-shadow: 0 6px 18px var(--pink-glow); }
 .btn-ctrl.active-mode { color: var(--primary-pink); background: var(--pink-light); }
-.repeat-badge { position: absolute; top: 6px; right: 6px; font-size: 0.62rem; font-weight: 800; color: var(--primary-pink); }
+.repeat-badge { position: absolute; top: 6px; right: 6px; font-size: 0.62rem; font-weight: 800; color: var(--primary-pink); pointer-events: none; }
 
 .progress-block { width: 100%; display: flex; align-items: center; gap: 10px; font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
 .rail-capsule { position: relative; flex: 1; height: 5px; background: rgba(0, 0, 0, 0.08); border-radius: 99px; cursor: pointer; }
 .rail-fill { height: 100%; width: 0%; background: var(--primary-pink); border-radius: 99px; pointer-events: none; }
 #seek-bar { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-
-.dock-volume {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 280px;
-  justify-content: flex-end;
-}
-
-#vol-slider {
-  accent-color: var(--primary-pink);
-  cursor: pointer;
-  width: 130px;
-  height: 5px;
-}
 
 /* Fullscreen Immersive Sheet */
 .fullscreen-sheet {
@@ -500,19 +483,40 @@ body {
 .sheet-meta h2 { font-size: 1.35rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sheet-meta p { font-size: 0.95rem; color: var(--text-muted); margin-top: 4px; }
 
+/* Perfect Synchronized Fullscreen Scrubber */
 .sheet-scrub { margin-top: 4px; }
-.sheet-scrub .rail-capsule { height: 6px; }
+.sheet-capsule {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+}
+
+#sheet-rail-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--primary-pink);
+  border-radius: 99px;
+  pointer-events: none;
+}
 
 #sheet-seek-bar {
   -webkit-appearance: none;
   appearance: none;
   background: transparent;
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
   width: 100%;
-  height: 100%;
+  height: 24px;
   cursor: pointer;
   margin: 0;
+  outline: none;
+  z-index: 2;
 }
 
 #sheet-seek-bar::-webkit-slider-thumb {
@@ -520,6 +524,16 @@ body {
   appearance: none;
   width: 14px;
   height: 14px;
+  border-radius: 50%;
+  background: var(--primary-pink);
+  box-shadow: 0 0 10px var(--pink-glow);
+  cursor: pointer;
+}
+
+#sheet-seek-bar::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: none;
   border-radius: 50%;
   background: var(--primary-pink);
   box-shadow: 0 0 10px var(--pink-glow);
@@ -571,6 +585,33 @@ body {
 .create-playlist-form input { flex: 1; padding: 10px 14px; border: 1px solid var(--border-subtle); border-radius: 12px; outline: none; }
 .create-playlist-form button { padding: 10px 16px; background: var(--primary-pink); color: #fff; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
 
+/* Floating Toast Notification */
+.toast-notice {
+  position: fixed;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(26, 31, 44, 0.9);
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 2000;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease;
+}
+
+.toast-notice.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
 /* -------------------------------------------------------------
    MOBILE & TABLET VIEWPORT (<= 1024px)
    ------------------------------------------------------------- */
@@ -598,7 +639,7 @@ body {
 
   /* Floating Mini-Player Dock */
   .bottom-dock {
-    bottom: 62px;
+    bottom: 68px;
     left: 8px;
     right: 8px;
     width: calc(100vw - 16px);
@@ -606,7 +647,7 @@ body {
     border-radius: 14px;
     padding: 0 12px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.92);
     border: 1px solid rgba(255, 255, 255, 0.8);
   }
 
@@ -663,6 +704,10 @@ body {
 
   .mobile-nav-btn.active { color: var(--primary-pink); }
 
+  .toast-notice {
+    bottom: 128px;
+  }
+
   .fullscreen-sheet { padding: 20px 20px 24px; }
   .sheet-artwork img { width: 65vw; max-width: 260px; }
   .sheet-controls { gap: 12px; }
@@ -671,7 +716,8 @@ body {
 @media (min-width: 1025px) {
   .mobile-bottom-nav { display: none; }
 }
-/* --- Desktop Volume Slider Dynamic Animation --- */
+
+/* --- Desktop Volume Slider Dynamic Expanding Animation --- */
 @media (min-width: 1025px) {
   .dock-volume {
     display: flex;
@@ -681,19 +727,25 @@ body {
     justify-content: flex-end;
   }
 
-  /* Base Passive State */
+  /* Base Passive State: 60px */
   #vol-slider {
     -webkit-appearance: none;
     appearance: none;
     width: 60px;
     height: 4px;
-    background: rgba(0, 0, 0, 0.1);
+    --vol-pct: 100%;
+    background: linear-gradient(
+      to right,
+      var(--primary-pink) 0%,
+      var(--primary-pink) var(--vol-pct),
+      rgba(0, 0, 0, 0.1) var(--vol-pct),
+      rgba(0, 0, 0, 0.1) 100%
+    );
     border-radius: 99px;
     outline: none;
     cursor: pointer;
     transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                background 0.2s ease;
+                height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Passive Thumb */
@@ -707,13 +759,12 @@ body {
     transition: width 0.2s ease, height 0.2s ease, box-shadow 0.2s ease;
   }
 
-  /* Hover & Active Sliding State (Expands) */
+  /* Hover & Active Sliding State (Expands to 130px) */
   #vol-slider:hover,
   #vol-slider:active,
   .dock-volume:hover #vol-slider {
-    width: 120px;
+    width: 130px;
     height: 6px;
-    background: rgba(255, 45, 85, 0.18);
   }
 
   /* Expanded Thumb */
