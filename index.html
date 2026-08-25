@@ -225,15 +225,47 @@
       <div style="width:44px;"></div>
     </div>
 
-    <div class="sheet-artwork">
-      <img id="sheet-cover" src="./covers/track01_cover.jpg" alt="Art" />
+    <!-- Center Display Area (Artwork vs Synced Lyrics) -->
+    <div class="sheet-body-container">
+      <div id="sheet-artwork-panel" class="sheet-artwork active">
+        <img id="sheet-cover" src="./covers/track01_cover.jpg" alt="Art" />
+      </div>
+
+      <div id="sheet-lyrics-panel" class="sheet-lyrics-container">
+        <div id="lyrics-stream" class="lyrics-stream">
+          <p class="lyric-line placeholder">No synchronized lyrics available for this track.</p>
+        </div>
+      </div>
     </div>
 
     <!-- Centered compact bottom player panel -->
-    <div class="sheet-bottom-panel auto-fade-elem">
+    <div class="sheet-bottom-panel">
       <div class="sheet-meta">
         <h2 id="sheet-title">Song Title</h2>
         <p id="sheet-artist">Artist Name</p>
+      </div>
+
+      <!-- Action Toolbar Directly Above Timeline -->
+      <div class="sheet-utility-row">
+        <button id="sheet-lyrics-btn" class="sheet-action-pill" title="Toggle Lyrics">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
+          </svg>
+          <span>Lyrics</span>
+        </button>
+
+        <div class="sheet-utility-subgroup">
+          <button id="sheet-add-p-btn" class="glass-icon-btn sheet-mini-btn" title="Add to Playlist">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
+          </button>
+          <button id="sheet-dl-btn" class="glass-icon-btn sheet-mini-btn" title="Download Offline">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div class="sheet-scrub">
@@ -266,6 +298,21 @@
           <span id="sheet-repeat-badge" class="repeat-badge">∞</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Playlist Picker Modal -->
+  <div id="playlist-modal" class="modal-overlay">
+    <div class="glass-modal">
+      <div class="modal-header">
+        <h3>Add to Playlist</h3>
+        <button id="playlist-modal-close-btn" class="modal-close-btn">&times;</button>
+      </div>
+      <div id="playlist-picker-list" class="playlist-picker-list"></div>
+      <form id="create-playlist-form" class="create-playlist-form">
+        <input type="text" id="new-playlist-input" placeholder="New Playlist Name..." required />
+        <button type="submit">Create</button>
+      </form>
     </div>
   </div>
 

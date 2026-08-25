@@ -1,5 +1,5 @@
-// IndexedDB Vault Storage Engine
-const IDB_NAME = "HarmonyOfflineVault";
+// IndexedDB Vault Storage Engine for Nitesh Music
+const IDB_NAME = "NiteshMusicVault";
 const IDB_STORE = "offline_songs";
 
 function initOfflineDB() {
@@ -29,6 +29,7 @@ async function saveTrackOffline(track) {
     artist: track.artist,
     album: track.album,
     duration: track.duration,
+    lyrics: track.lyrics || null,
     audioBlob: audioBlob,
     coverBlob: coverBlob,
     savedAt: Date.now()
@@ -58,6 +59,7 @@ async function getOfflineTracks() {
         artist: item.artist,
         album: item.album,
         duration: item.duration,
+        lyrics: item.lyrics,
         url: URL.createObjectURL(item.audioBlob),
         cover: URL.createObjectURL(item.coverBlob),
         isOfflineStored: true
@@ -150,12 +152,18 @@ class HarmonyEngine {
     this.volSlider = document.getElementById("vol-slider");
     this.pcFullscreenBtn = document.getElementById("btn-pc-fullscreen");
 
-    // Fullscreen Sheet
+    // Fullscreen Sheet & Lyrics
     this.sheet = document.getElementById("fullscreen-sheet");
     this.sheetClose = document.getElementById("sheet-close-btn");
     this.sheetCover = document.getElementById("sheet-cover");
     this.sheetTitle = document.getElementById("sheet-title");
     this.sheetArtist = document.getElementById("sheet-artist");
+    this.sheetArtworkPanel = document.getElementById("sheet-artwork-panel");
+    this.sheetLyricsPanel = document.getElementById("sheet-lyrics-panel");
+    this.lyricsStream = document.getElementById("lyrics-stream");
+    this.sheetLyricsBtn = document.getElementById("sheet-lyrics-btn");
+    this.sheetAddPBtn = document.getElementById("sheet-add-p-btn");
+    this.sheetDlBtn = document.getElementById("sheet-dl-btn");
     this.sheetRailFill = document.getElementById("sheet-rail-fill");
     this.sheetSeekBar = document.getElementById("sheet-seek-bar");
     this.sheetCurr = document.getElementById("sheet-curr");
@@ -179,18 +187,22 @@ class HarmonyEngine {
     this.activePlaylistName = null;
     this.prevVolume = 1;
     this.idleTimer = null;
+    this.isLyricsView = false;
+    this.parsedLyrics = [];
+    this.selectedTrackForModal = null;
 
     this.repeatMode = "all";
     this.isShuffle = false;
 
     this.downloadedTrackIds = new Set();
-    this.likedTracks = new Set(JSON.parse(localStorage.getItem("harmony_favorites") || "[]"));
-    this.playlists = JSON.parse(localStorage.getItem("harmony_playlists") || '{"Favorites Hits":[], "Chill Vibes":[]}');
+    this.likedTracks = new Set(JSON.parse(localStorage.getItem("nitesh_favorites") || "[]"));
+    this.playlists = JSON.parse(localStorage.getItem("nitesh_playlists") || '{"Favorites Hits":[], "Chill Vibes":[]}');
 
     this.bindDOMHandlers();
     this.bindKeyboardShortcuts();
     this.bindMouseIdleDetection();
     this.bindConnectivity();
+    this.setupMediaSession();
   }
 
   showToast(message) {
@@ -203,13 +215,41 @@ class HarmonyEngine {
     }, 2800);
   }
 
+  setupMediaSession() {
+    if (!("mediaSession" in navigator)) return;
+
+    console.log("[MediaSession] Initializing OS controls for Nitesh Music");
+
+    navigator.mediaSession.setActionHandler("play", () => this.play());
+    navigator.mediaSession.setActionHandler("pause", () => this.pause());
+    navigator.mediaSession.setActionHandler("previoustrack", () => this.prev());
+    navigator.mediaSession.setActionHandler("nexttrack", () => this.next());
+
+    navigator.mediaSession.setActionHandler("seekto", (details) => {
+      if (details.seekTime && this.audio.duration) {
+        this.audio.currentTime = details.seekTime;
+      }
+    });
+
+    navigator.mediaSession.setActionHandler("seekbackward", (details) => {
+      const skip = details.seekOffset || 5;
+      this.audio.currentTime = Math.max(0, this.audio.currentTime - skip);
+    });
+
+    navigator.mediaSession.setActionHandler("seekforward", (details) => {
+      const skip = details.seekOffset || 5;
+      if (this.audio.duration) {
+        this.audio.currentTime = Math.min(this.audio.duration, this.audio.currentTime + skip);
+      }
+    });
+  }
+
   async start() {
     this.tracks = await fetchCatalog();
     this.downloadedTrackIds = await getDownloadedIdsSet();
     this.activeQueue = [...this.tracks];
     this.filteredTracks = [...this.tracks];
 
-    // Initialize Volume Slider fill
     if (this.volSlider) {
       this.volSlider.style.setProperty("--vol-pct", "100%");
     }
@@ -229,8 +269,8 @@ class HarmonyEngine {
   }
 
   saveState() {
-    localStorage.setItem("harmony_favorites", JSON.stringify([...this.likedTracks]));
-    localStorage.setItem("harmony_playlists", JSON.stringify(this.playlists));
+    localStorage.setItem("nitesh_favorites", JSON.stringify([...this.likedTracks]));
+    localStorage.setItem("nitesh_playlists", JSON.stringify(this.playlists));
   }
 
   switchView(mode, playlistName = null, pushHistory = true) {
@@ -244,7 +284,6 @@ class HarmonyEngine {
     this.currentViewMode = mode;
     this.activePlaylistName = playlistName;
 
-    // Filter tracks based on active mode
     if (mode === "library") {
       this.filteredTracks = [...this.tracks];
     } else if (mode === "favorites") {
@@ -256,14 +295,12 @@ class HarmonyEngine {
       this.filteredTracks = this.tracks.filter(t => pTrackIds.has(t.id));
     }
 
-    // Update browser history
     if (pushHistory && window.history && window.history.pushState) {
       if (mode !== "library") {
         window.history.pushState({ view: mode, playlist: playlistName }, "");
       }
     }
 
-    // Update Sidebar & Bottom Nav Active States
     if (this.navLinks) {
       this.navLinks.forEach((link) => {
         link.classList.toggle("active", link.dataset.view === mode);
@@ -275,7 +312,6 @@ class HarmonyEngine {
       });
     }
 
-    // Update Section Title
     const titleEl = document.querySelector(".title-left h2");
     if (titleEl) {
       if (mode === "library") titleEl.textContent = "Library";
@@ -436,6 +472,7 @@ class HarmonyEngine {
             this.showToast(`Downloaded "${track.title}" for offline play`);
           }
           this.renderView();
+          this.syncFullscreenActionStates();
         } catch (err) {
           console.error("[Download Error]", err);
           this.showToast("Offline caching failed");
@@ -464,6 +501,144 @@ class HarmonyEngine {
     });
   }
 
+  /* --- Synced Word-by-Word Lyrics Parser --- */
+  parseLyricsData(track) {
+    this.parsedLyrics = [];
+    if (!track.lyrics) {
+      this.lyricsStream.innerHTML = `<p class="lyric-line placeholder">No synchronized lyrics available for this track.</p>`;
+      return;
+    }
+
+    if (Array.isArray(track.lyrics)) {
+      this.parsedLyrics = track.lyrics;
+    } else if (typeof track.lyrics === "string") {
+      const lines = track.lyrics.split("\n");
+      lines.forEach(line => {
+        const match = line.match(/\[(\d+):(\d+(\.\d+)?)\](.*)/);
+        if (match) {
+          const min = parseFloat(match[1]);
+          const sec = parseFloat(match[2]);
+          const totalSec = min * 60 + sec;
+          const text = match[4].trim();
+          const wordsArr = text.split(" ").map((w, i) => ({
+            text: w,
+            time: totalSec + (i * 0.35)
+          }));
+          this.parsedLyrics.push({ time: totalSec, text, words: wordsArr });
+        }
+      });
+    }
+
+    this.lyricsStream.innerHTML = "";
+    this.parsedLyrics.forEach((lineObj, lIdx) => {
+      const p = document.createElement("p");
+      p.className = "lyric-line";
+      p.dataset.lineIdx = lIdx;
+      p.dataset.time = lineObj.time;
+
+      if (lineObj.words && lineObj.words.length > 0) {
+        lineObj.words.forEach((wObj) => {
+          const span = document.createElement("span");
+          span.className = "word";
+          span.dataset.time = wObj.time;
+          span.textContent = wObj.text;
+          p.appendChild(span);
+        });
+      } else {
+        p.textContent = lineObj.text;
+      }
+      this.lyricsStream.appendChild(p);
+    });
+  }
+
+  updateLyricsSync(currentTime) {
+    if (!this.parsedLyrics.length || !this.sheetLyricsPanel.classList.contains("active")) return;
+
+    let activeLineIdx = -1;
+    for (let i = 0; i < this.parsedLyrics.length; i++) {
+      if (currentTime >= this.parsedLyrics[i].time) {
+        activeLineIdx = i;
+      } else {
+        break;
+      }
+    }
+
+    const lines = this.lyricsStream.querySelectorAll(".lyric-line");
+    lines.forEach((lineEl, idx) => {
+      const isCurrentLine = idx === activeLineIdx;
+      lineEl.classList.toggle("active", isCurrentLine);
+
+      if (isCurrentLine) {
+        const words = lineEl.querySelectorAll(".word");
+        words.forEach((wEl) => {
+          const wTime = parseFloat(wEl.dataset.time);
+          wEl.classList.toggle("active", currentTime >= wTime);
+        });
+
+        lineEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+  }
+
+  toggleLyricsView() {
+    this.isLyricsView = !this.isLyricsView;
+    this.sheetArtworkPanel.classList.toggle("active", !this.isLyricsView);
+    this.sheetLyricsPanel.classList.toggle("active", this.isLyricsView);
+    if (this.sheetLyricsBtn) {
+      this.sheetLyricsBtn.classList.toggle("active-mode", this.isLyricsView);
+    }
+    if (this.isLyricsView) {
+      this.updateLyricsSync(this.audio.currentTime);
+    }
+  }
+
+  openPlaylistModal(trackId) {
+    this.selectedTrackForModal = trackId;
+    const modal = document.getElementById("playlist-modal");
+    const list = document.getElementById("playlist-picker-list");
+    if (!modal || !list) return;
+
+    list.innerHTML = "";
+    const pNames = Object.keys(this.playlists);
+
+    if (pNames.length === 0) {
+      list.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem;">No playlists yet. Create one below.</div>`;
+    } else {
+      pNames.forEach(name => {
+        const item = document.createElement("div");
+        item.className = "playlist-picker-item";
+        const isAlreadyIn = (this.playlists[name] || []).includes(trackId);
+        item.innerHTML = `
+          <span>${name}</span>
+          <span style="font-size: 0.75rem; font-weight: 700;">${isAlreadyIn ? "✓ Added" : "+ Add"}</span>
+        `;
+        item.addEventListener("click", () => {
+          if (!this.playlists[name]) this.playlists[name] = [];
+          if (!isAlreadyIn) {
+            this.playlists[name].push(trackId);
+            this.saveState();
+            this.showToast(`Added track to "${name}"`);
+          } else {
+            this.playlists[name] = this.playlists[name].filter(id => id !== trackId);
+            this.saveState();
+            this.showToast(`Removed track from "${name}"`);
+          }
+          modal.classList.remove("open");
+        });
+        list.appendChild(item);
+      });
+    }
+
+    modal.classList.add("open");
+  }
+
+  syncFullscreenActionStates() {
+    const currentTrack = this.activeQueue[this.currentIndex];
+    if (!currentTrack || !this.sheetDlBtn) return;
+    const isDownloaded = this.downloadedTrackIds.has(currentTrack.id);
+    this.sheetDlBtn.classList.toggle("is-downloaded", isDownloaded);
+  }
+
   loadTrack(index, autoPlay = true) {
     if (index < 0 || index >= this.activeQueue.length) return;
     this.currentIndex = index;
@@ -477,6 +652,27 @@ class HarmonyEngine {
     this.sheetTitle.textContent = track.title;
     this.sheetArtist.textContent = track.artist;
     this.sheetCover.src = track.cover;
+
+    this.parseLyricsData(track);
+    this.syncFullscreenActionStates();
+
+    // Media Session OS Metadata Injection
+    if ("mediaSession" in navigator) {
+      console.log("[MediaSession] Dispatched Lock Screen Info for:", track.title);
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: track.title,
+        artist: track.artist || "Unknown Artist",
+        album: track.album || "Nitesh Music",
+        artwork: [
+          { src: track.cover, sizes: "96x96", type: "image/jpeg" },
+          { src: track.cover, sizes: "128x128", type: "image/jpeg" },
+          { src: track.cover, sizes: "192x192", type: "image/jpeg" },
+          { src: track.cover, sizes: "256x256", type: "image/jpeg" },
+          { src: track.cover, sizes: "384x384", type: "image/jpeg" },
+          { src: track.cover, sizes: "512x512", type: "image/jpeg" }
+        ]
+      });
+    }
 
     this.seekBar.value = 0;
     this.sheetSeekBar.value = 0;
@@ -509,6 +705,9 @@ class HarmonyEngine {
         const icon = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
         this.playSvg.innerHTML = icon;
         this.sheetPlaySvg.innerHTML = icon;
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = "playing";
+        }
         this.renderView();
       })
       .catch(err => console.error("[Playback Error]", err));
@@ -520,6 +719,9 @@ class HarmonyEngine {
     const icon = `<path d="M8 5v14l11-7z"/>`;
     this.playSvg.innerHTML = icon;
     this.sheetPlaySvg.innerHTML = icon;
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.playbackState = "paused";
+    }
     this.renderView();
   }
 
@@ -636,6 +838,7 @@ class HarmonyEngine {
       else if (e.code === "ArrowRight") { e.preventDefault(); if (this.audio.duration) this.audio.currentTime = Math.min(this.audio.duration, this.audio.currentTime + 5); }
       else if (e.code === "ArrowLeft") { e.preventDefault(); this.audio.currentTime = Math.max(0, this.audio.currentTime - 5); }
       else if (e.code === "KeyM") { e.preventDefault(); this.toggleMute(); }
+      else if (e.code === "KeyL") { e.preventDefault(); this.toggleLyricsView(); }
       else if (e.code === "Escape" && this.sheet.classList.contains("active")) { this.sheet.classList.remove("active"); }
     });
   }
@@ -650,7 +853,6 @@ class HarmonyEngine {
         : `<path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>`;
     });
 
-    // Unified Navigation Listeners
     document.querySelectorAll("[data-view]").forEach((el) => {
       el.addEventListener("click", (e) => {
         e.preventDefault();
@@ -670,6 +872,66 @@ class HarmonyEngine {
     }
 
     this.sheetClose.addEventListener("click", () => this.sheet.classList.remove("active"));
+
+    // Action Toolbar Listeners
+    if (this.sheetLyricsBtn) {
+      this.sheetLyricsBtn.addEventListener("click", () => this.toggleLyricsView());
+    }
+
+    if (this.sheetAddPBtn) {
+      this.sheetAddPBtn.addEventListener("click", () => {
+        const track = this.activeQueue[this.currentIndex];
+        if (track) this.openPlaylistModal(track.id);
+      });
+    }
+
+    if (this.sheetDlBtn) {
+      this.sheetDlBtn.addEventListener("click", async () => {
+        const track = this.activeQueue[this.currentIndex];
+        if (!track) return;
+        try {
+          if (this.downloadedTrackIds.has(track.id)) {
+            await removeOfflineTrack(track.id);
+            this.downloadedTrackIds.delete(track.id);
+            this.showToast(`Removed "${track.title}" from offline vault`);
+          } else {
+            await saveTrackOffline(track);
+            this.downloadedTrackIds.add(track.id);
+            this.showToast(`Downloaded "${track.title}" for offline play`);
+          }
+          this.renderView();
+          this.syncFullscreenActionStates();
+        } catch (err) {
+          console.error(err);
+          this.showToast("Offline caching failed");
+        }
+      });
+    }
+
+    // Modal Events
+    const pModal = document.getElementById("playlist-modal");
+    const pCloseBtn = document.getElementById("playlist-modal-close-btn");
+    const createPForm = document.getElementById("create-playlist-form");
+
+    if (pCloseBtn && pModal) {
+      pCloseBtn.addEventListener("click", () => pModal.classList.remove("open"));
+    }
+
+    if (createPForm) {
+      createPForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const input = document.getElementById("new-playlist-input");
+        const name = input.value.trim();
+        if (name && !this.playlists[name]) {
+          this.playlists[name] = this.selectedTrackForModal ? [this.selectedTrackForModal] : [];
+          this.saveState();
+          this.showToast(`Created playlist "${name}"`);
+          input.value = "";
+          pModal.classList.remove("open");
+          if (this.currentViewMode === "all-playlists") this.renderPlaylistsOverview();
+        }
+      });
+    }
 
     // Playback Controls
     this.playBtn.addEventListener("click", () => this.togglePlay());
@@ -692,15 +954,30 @@ class HarmonyEngine {
 
     this.audio.addEventListener("timeupdate", () => {
       if (!this.audio.duration) return;
-      const pct = (this.audio.currentTime / this.audio.duration) * 100;
+      const curTime = this.audio.currentTime;
+      const pct = (curTime / this.audio.duration) * 100;
       this.seekBar.value = pct;
       this.sheetSeekBar.value = pct;
       this.railFill.style.width = `${pct}%`;
       if (this.miniRailFill) this.miniRailFill.style.width = `${pct}%`;
       if (this.sheetRailFill) this.sheetRailFill.style.width = `${pct}%`;
-      const cur = this.formatTime(this.audio.currentTime);
+      const cur = this.formatTime(curTime);
       this.currTimeEl.textContent = cur;
       this.sheetCurr.textContent = cur;
+
+      this.updateLyricsSync(curTime);
+
+      if ("mediaSession" in navigator && "setPositionState" in navigator.mediaSession) {
+        try {
+          navigator.mediaSession.setPositionState({
+            duration: this.audio.duration,
+            playbackRate: this.audio.playbackRate || 1,
+            position: curTime
+          });
+        } catch (e) {
+          // Handled frame out-of-bounds
+        }
+      }
     });
 
     this.audio.addEventListener("ended", () => {
@@ -716,7 +993,11 @@ class HarmonyEngine {
       this.railFill.style.width = `${pct}%`;
       if (this.miniRailFill) this.miniRailFill.style.width = `${pct}%`;
       if (this.sheetRailFill) this.sheetRailFill.style.width = `${pct}%`;
-      if (this.audio.duration) this.audio.currentTime = (pct / 100) * this.audio.duration;
+      if (this.audio.duration) {
+        const targetTime = (pct / 100) * this.audio.duration;
+        this.audio.currentTime = targetTime;
+        this.updateLyricsSync(targetTime);
+      }
     };
 
     this.seekBar.addEventListener("input", (e) => handleSeek(e.target.value));
