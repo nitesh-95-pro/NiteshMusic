@@ -215,6 +215,18 @@ class HarmonyEngine {
     this.currentViewMode = mode;
     this.activePlaylistName = playlistName;
 
+    // Filter tracks based on the selected mode
+    if (mode === "library") {
+      this.filteredTracks = [...this.tracks];
+    } else if (mode === "favorites") {
+      this.filteredTracks = this.tracks.filter(t => this.likedTracks.has(t.id));
+    } else if (mode === "downloads") {
+      this.filteredTracks = this.tracks.filter(t => this.downloadedTrackIds.has(t.id));
+    } else if (mode === "single-playlist" && playlistName) {
+      const pTrackIds = new Set(this.playlists[playlistName] || []);
+      this.filteredTracks = this.tracks.filter(t => pTrackIds.has(t.id));
+    }
+
     // Update browser history safely
     if (pushHistory && window.history && window.history.pushState) {
       if (mode !== "library") {
@@ -234,19 +246,18 @@ class HarmonyEngine {
       });
     }
 
-    // Update Section Title
-    const viewTitle = document.querySelector(".view-title") || document.querySelector("h2");
-    if (viewTitle) {
-      if (mode === "library") viewTitle.textContent = "Library";
-      else if (mode === "favorites") viewTitle.textContent = "Favorites";
-      else if (mode === "downloads") viewTitle.textContent = "Downloads";
-      else if (mode === "playlists") viewTitle.textContent = playlistName || "Playlists";
+    // Update Section Title & Count
+    const titleEl = document.querySelector(".title-left h2");
+    if (titleEl) {
+      if (mode === "library") titleEl.textContent = "Library";
+      else if (mode === "favorites") titleEl.textContent = "Favorites";
+      else if (mode === "downloads") titleEl.textContent = "Downloads";
+      else if (mode === "all-playlists") titleEl.textContent = "Playlists";
+      else if (mode === "single-playlist") titleEl.textContent = playlistName || "Playlist";
     }
 
-    // Re-render the song list for the selected mode
-    if (typeof this.renderTrackList === "function") {
-      this.renderTrackList();
-    }
+    // Re-render the correct view
+    this.renderView();
   }
 
   renderView() {

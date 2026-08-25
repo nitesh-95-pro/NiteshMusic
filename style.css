@@ -671,24 +671,24 @@ body {
 @media (min-width: 1025px) {
   .mobile-bottom-nav { display: none; }
 }
-/* --- Desktop Volume Slider Animation --- */
-@media (min-width: 768px) {
-  .volume-container,
-  .player-volume-wrap {
+/* --- Desktop Volume Slider Dynamic Animation --- */
+@media (min-width: 1025px) {
+  .dock-volume {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    width: 280px;
+    justify-content: flex-end;
   }
 
   /* Base Passive State */
-  input[type="range"].volume-slider,
-  .volume-bar {
+  #vol-slider {
     -webkit-appearance: none;
     appearance: none;
     width: 60px;
     height: 4px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 99px;
     outline: none;
     cursor: pointer;
     transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
@@ -696,33 +696,32 @@ body {
                 background 0.2s ease;
   }
 
-  /* Slider Thumb (Passive) */
-  input[type="range"].volume-slider::-webkit-slider-thumb,
-  .volume-bar::-webkit-slider-thumb {
+  /* Passive Thumb */
+  #vol-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     width: 0px;
     height: 0px;
     border-radius: 50%;
-    background: #ff2d55;
+    background: var(--primary-pink);
     transition: width 0.2s ease, height 0.2s ease, box-shadow 0.2s ease;
   }
 
-  /* Hover & Active/Sliding State (Expands) */
-  input[type="range"].volume-slider:hover,
-  input[type="range"].volume-slider:active,
-  .volume-container:hover input[type="range"] {
-    width: 110px;
+  /* Hover & Active Sliding State (Expands) */
+  #vol-slider:hover,
+  #vol-slider:active,
+  .dock-volume:hover #vol-slider {
+    width: 120px;
     height: 6px;
-    background: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 45, 85, 0.18);
   }
 
-  /* Slider Thumb (Active/Hovered) */
-  input[type="range"].volume-slider:hover::-webkit-slider-thumb,
-  input[type="range"].volume-slider:active::-webkit-slider-thumb,
-  .volume-container:hover input[type="range"]::-webkit-slider-thumb {
-    width: 12px;
-    height: 12px;
-    box-shadow: 0 0 6px rgba(255, 45, 85, 0.6);
+  /* Expanded Thumb */
+  #vol-slider:hover::-webkit-slider-thumb,
+  #vol-slider:active::-webkit-slider-thumb,
+  .dock-volume:hover #vol-slider::-webkit-slider-thumb {
+    width: 14px;
+    height: 14px;
+    box-shadow: 0 0 8px var(--pink-glow);
   }
 }
