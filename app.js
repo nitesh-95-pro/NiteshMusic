@@ -213,9 +213,7 @@ class HarmonyEngine {
     this.currentViewMode = mode;
     this.activePlaylistName = playlistName;
 
-    if (pushHistory && mode !== "library") {
-    history.pushState({ view: mode }, "");
-  }
+    
 
     this.navLinks.forEach(l => l.classList.toggle("active", l.dataset.view === mode));
     this.mobileNavBtns.forEach(b => b.classList.toggle("active", b.dataset.view === mode));
@@ -718,6 +716,9 @@ class HarmonyEngine {
         return;
       }
     });
+    if (pushHistory && mode !== "library") {
+    history.pushState({ view: mode }, "");
+  }
   }
 }
 
